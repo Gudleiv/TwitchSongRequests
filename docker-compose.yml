@@ -19,7 +19,7 @@ services:
 
   app:
     build:
-      context: /app/TwitchSongRequests
+      context: .
       dockerfile: Dockerfile
       args:
         PORT: ${PORT}
