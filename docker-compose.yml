@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: twitchsongrequests-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  app:
+    build:
+      context: /app/TwitchSongRequests
+      dockerfile: Dockerfile
+      args:
+        PORT: ${PORT}
+    container_name: twitchsongrequests-app
+    environment:
+      PORT: ${PORT}
+      DATABASE_URL: "postgres://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}"
+      TWITCH_CLIENT_ID: ${TWITCH_CLIENT_ID}
+      TWITCH_CLIENT_SECRET: ${TWITCH_CLIENT_SECRET}
+      TWITCH_SECRET: ${TWITCH_SECRET}
+      TWITCH_STATE: ${TWITCH_STATE}
+      TWITCH_REDIRECT_URL: ${TWITCH_REDIRECT_URL}
+      SPOTIFY_CLIENT_ID: ${SPOTIFY_CLIENT_ID}
+      SPOTIFY_CLIENT_SECRET: ${SPOTIFY_CLIENT_SECRET}
+      SPOTIFY_STATE: ${SPOTIFY_STATE}
+      SPOTIFY_REDIRECT_URL: ${SPOTIFY_REDIRECT_URL}
+      SITE_REDIRECT_URL: ${SITE_REDIRECT_URL}
+      ONBOARDED_USERS: ${ONBOARDED_USERS}
+      ALLOWED_USERS: ${ALLOWED_USERS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "11080:11080"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
